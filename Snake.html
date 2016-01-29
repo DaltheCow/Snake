@@ -1,0 +1,36 @@
+<doctype html>
+<html>
+    <title>
+        Snake
+    </title>
+    <canvas id="SnakeScreen" width="300" height="300" style="border: black solid 1px"> </canvas>
+    <script type="text/javascript">
+        var screen = document.querySelector("#SnakeScreen");
+        var context = screen.getContext('2d');
+        var model = {
+            snakehead: {xPos:145,yPos:145,Speed:0,direction:'right'},
+            speed:100,
+            updatePos: function() {
+
+            }
+        }
+        var octopus = {
+            init: function() {
+
+            },
+            render: function() {
+                view.render(model.snakehead);
+            }
+        }
+        var view = {
+            render: function(head) {
+                context.clearRect(0,0,300,300);
+                context.fillStyle = 'black';
+                context.fillRect(head.xPos,head.yPos,10,10);
+            }
+        }
+        setInterval(function(){
+            octopus.render();
+        }, model.speed);
+    </script>
+</html>
