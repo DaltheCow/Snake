@@ -8,29 +8,97 @@
         var screen = document.querySelector("#SnakeScreen");
         var context = screen.getContext('2d');
         var model = {
-            snakehead: {xPos:145,yPos:145,Speed:0,direction:'right'},
-            speed:100,
+            snakehead: {xPos: 145, yPos: 145, pastX: null, pastY: null, blockSize: 10, direction: 'E'},
+            target: {},
+            refreshSpeed: 100,
+            snakeArray: [],
+            game: true,
             updatePos: function() {
-
-            }
-        }
-        var octopus = {
-            init: function() {
+                var SH = model.snakehead;
+                if (SH.direction === 'E')
+                    SH.xPos += SH.blockSize;
+                else if (SH.direction === 'W')
+                    SH.xPos -= SH.blockSize;
+                else if (SH.direction === 'N')
+                    SH.yPos -= SH.blockSize;
+                else if (SH.direction === 'S')
+                    SH.yPos += SH.blockSize;
+            },
+            obj: function(xpos,ypos) {
+                return {xPos: xpos, yPos: ypos, pastX: null, pastY: null};
+            },
+            newTarget: function() {
 
             },
+            move: function () {
+                addEventListener('keypress', function(event) {
+                    console.log(event.charCode);
+                    if (event.charCode === 100) {
+                        if (model.snakehead.direction != 'W')
+                            model.snakehead.direction = 'E';
+                    }
+                    else if (event.charCode === 115) {
+                        if (model.snakehead.direction != 'N')
+                            model.snakehead.direction = 'S';
+                    }
+                    else if (event.charCode === 97) {
+                        if (model.snakehead.direction != 'E')
+                            model.snakehead.direction = 'W';
+                    }
+                    else if (event.charCode === 119) {
+                        if (model.snakehead.direction != 'S')
+                            model.snakehead.direction = 'N';
+                    }
+            }, false)},
+            growth: function() {
+
+            }
+        }
+
+        var octopus = {
+            init: function() {
+                context.fillText("To Start Hit R", 120,140);
+                var listener = function(event) {
+                    if (event.charCode === 114) {
+                        setInterval(function(){
+                            octopus.render();
+                        }, model.refreshSpeed);
+                    removeEventListener('keypress', listener, false);
+                    model.move();
+                    }
+                };
+                addEventListener('keypress', listener, false);
+            },
             render: function() {
-                view.render(model.snakehead);
+                var SH = model.snakehead;
+                if (model.game) {
+                    view.renderGame(SH.xPos, SH.yPos, SH.blockSize);
+                    model.snakeArray.forEach(function(AE) {
+                        view.renderGame(AE.xPos, AE.yPos, AE.blockSize);
+                    });
+                    model.updatePos();
+                }
+                else {
+                    view.endScreen();
+                }
             }
         }
+
         var view = {
-            render: function(head) {
+            renderGame: function(x,y,size) {
                 context.clearRect(0,0,300,300);
+                view.drawSnake(x,y,size);
+            },
+            drawSnake: function(x,y,size) {
                 context.fillStyle = 'black';
-                context.fillRect(head.xPos,head.yPos,10,10);
+                context.fillRect(x,y,size*9/10,size*9/10);
+            },
+            endScreen: function() {
+                context.clearRect(0,0,300,300);
+                context.font = '30px Verdana';
+                context.fillText("Game Over",130,130);
             }
         }
-        setInterval(function(){
-            octopus.render();
-        }, model.speed);
+        octopus.init();
     </script>
 </html>
