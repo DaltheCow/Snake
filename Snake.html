@@ -8,11 +8,18 @@
         var screen = document.querySelector("#SnakeScreen");
         var context = screen.getContext('2d');
         var model = {
-            snakehead: {xPos: 145, yPos: 145, pastX: null, pastY: null, blockSize: 10, direction: 'E'},
-            target: {},
+            snakehead: {xPos: 140, yPos: 140, pastX: null, pastY: null, blockSize: 10, direction: 'E'},
+            target: {xPos: null, yPos: null},
             refreshSpeed: 100,
             snakeArray: [],
             game: true,
+            obj: function(xpos,ypos) {
+                return {xPos: xpos, yPos: ypos, pastX: null, pastY: null};
+            },
+            newTarget: function() {
+                model.target.xPos = 10 * Math.floor(Math.random() * 29);
+                model.target.yPos = 10 * Math.floor(Math.random() * 29);
+            },
             updatePos: function() {
                 var SH = model.snakehead;
                 SH.pastX = SH.xPos;
@@ -36,12 +43,6 @@
                     SA[i].xPos = SA[i-1].pastX, SA[i].yPos = SA[i-1].pastY;
                 }
             },
-            obj: function(xpos,ypos) {
-                return {xPos: xpos, yPos: ypos, pastX: null, pastY: null};
-            },
-            newTarget: function() {
-
-            },
             move: function () {
                 addEventListener('keypress', function(event) {
                     if (event.charCode === 100) {
@@ -61,25 +62,49 @@
                             model.snakehead.direction = 'N';
                     }
             }, false)},
-            growth: function() {
+            growth: function(j) {
                 var SA = model.snakeArray;
+                //for growths after first
                 if (SA.length > 0) {
-                    for (var i = 0; i<4; i++) {
-                        model.snakeArray.push(model.obj(SA[SA.length-1].xPos, SA[SA.legnth-1].yPos));
+                    for (var i = 0; i<j; i++) {
+                        model.snakeArray.push(model.obj(SA[SA.length-1].xPos, SA[SA.length-1].yPos));
                     }
                 }
+                //for first growth
                 else {
-                    for (var i = 0; i<4; i++) {
+                    for (var i = 0; i<j; i++) {
                         model.snakeArray.push(model.obj(model.snakehead.xPos, model.snakehead.yPos));
                     }
                 }
+            },
+            collisions: function(x1,y1,x2,y2) {
+                var sz = model.snakehead.blockSize;
+                if (x1 > x2 - sz/2 && x1 - sz/2 < x2 + sz/2
+                    && y1 > y2 - sz/2 && y1 - sz/2 < y2 + sz/2)
+                    return true;
+                else
+                    return false;
+            },
+            targetCollisions: function() {
+                var M = model;
+                if(M.collisions(M.target.xPos, M.target.yPos, M.snakehead.xPos, M.snakehead.yPos)) {
+                    M.growth(3);
+                    M.newTarget();
+                }
+            },
+            renderGame: function() {
+                model.updatePos();
+                model.updateSA();
+                model.targetCollisions();
+
             }
         }
 
         var octopus = {
             init: function() {
                 context.fillText("To Start Hit R", 120,140);
-                model.growth();
+                model.newTarget();
+                model.growth(4);
                 var listener = function(event) {
                     if (event.charCode === 114) {
                         setInterval(function(){
@@ -97,10 +122,10 @@
                 if (model.game) {
                     view.renderGame(SH.xPos, SH.yPos, SH.blockSize);
                     model.snakeArray.forEach(function(AE) {
-                        view.renderGame(AE.xPos, AE.yPos, model.snakehead.blockSize);
+                        view.renderGame(AE.xPos, AE.yPos, SH.blockSize);
                     });
-                    model.updatePos();
-                    model.updateSA();
+                    view.renderGame(model.target.xPos,model.target.yPos, SH.blockSize);
+                    model.renderGame();
                 }
                 else {
                     view.endScreen();
