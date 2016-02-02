@@ -14,12 +14,28 @@
             speedUp: false,
             snakeArray: [],
             game: true,
+            init: function() {
+                var M = model;
+                M.snakehead = {xPos: 140, yPos: 140, pastX: null, pastY: null, blockSize: 10, direction: 'E'};
+                M.newTarget();
+                M.refreshSpeed = 100;
+                M.speedUp = false;
+                M.snakeArray = [];
+                M.growth(4);
+                M.game = true;
+            },
             obj: function(xpos,ypos) {
                 return {xPos: xpos, yPos: ypos, pastX: null, pastY: null};
             },
             newTarget: function() {
-                model.target.xPos = 10 * Math.floor(Math.random() * 29);
-                model.target.yPos = 10 * Math.floor(Math.random() * 29);
+                var M = model;
+                M.target.xPos = 10 * Math.floor(Math.random() * 29);
+                M.target.yPos = 10 * Math.floor(Math.random() * 29);
+                if (M.snakeArray.some(function(AE){
+                        return M.collisions(AE.xPos, AE.yPos, M.target.xPos, M.target.yPos);
+                    })) {
+                    M.newTarget();
+                }
             },
             updatePos: function() {
                 var SH = model.snakehead;
@@ -90,32 +106,45 @@
                 var M = model;
                 if(M.collisions(M.target.xPos, M.target.yPos, M.snakehead.xPos, M.snakehead.yPos)) {
                     M.growth(3);
-                    if (model.refreshSpeed > 20)
-                        model.refreshSpeed-=2;
+                    if (M.refreshSpeed > 20)
+                        M.refreshSpeed-=1;
                     M.newTarget();
-                    model.speedUp = true;
+                    M.speedUp = true;
                 }
             },
             tailCollisions: function() {
-
+                var M = model;
+                if (M.snakeArray.some(function(AE) {
+                    return M.collisions(AE.xPos, AE.yPos, M.snakehead.xPos, M.snakehead.yPos);
+                    })) {
+                    model.game = false;
+                }
+            },
+            wallCollisions: function() {
+                var SH = model.snakehead;
+                if (SH.xPos > 290 || SH.xPos < 0 || SH.yPos > 290 || SH.yPos < 0) {
+                    model.game = false;
+                }
             },
             renderGame: function() {
                 model.updatePos();
                 model.updateSA();
                 model.targetCollisions();
+                model.tailCollisions();
+                model.wallCollisions();
 
             }
         }
 
         var octopus = {
             init: function() {
-                context.fillText("To Start Hit R", 120,140);
-                model.newTarget();
+                view.init();
+                model.init();
                 var listener = function(event) {
                     if (event.charCode === 114) {
                         octopus.setSpeed();
-                    removeEventListener('keypress', listener, false);
-                    model.move();
+                        model.move();
+                        removeEventListener('keypress', listener, false);
                     }
                 };
                 addEventListener('keypress', listener, false);
@@ -130,9 +159,10 @@
             },
             intervalID: null,
             render: function() {
-                context.clearRect(0,0,300,300);
+                //context.clearRect(0,0,300,300);
                 var SH = model.snakehead;
                 if (model.game) {
+                    context.clearRect(0,0,300,300);
                     view.renderGame(SH.xPos, SH.yPos, SH.blockSize);
                     model.snakeArray.forEach(function(AE) {
                         view.renderGame(AE.xPos, AE.yPos, SH.blockSize);
@@ -146,12 +176,17 @@
                     }
                 }
                 else {
-                    view.endScreen();
+                    octopus.clear();
+                    view.endScreen(model.snakeArray.length);
                 }
             }
         }
 
         var view = {
+            init: function() {
+                context.fillText("To Start Hit R", 120, 140);
+                context.fillText("Controls: wasd", 120, 150);
+            },
             renderGame: function(x,y,size) {
                 view.drawSnake(x,y,size);
             },
@@ -159,10 +194,11 @@
                 context.fillStyle = 'black';
                 context.fillRect(x,y,size*9/10,size*9/10);
             },
-            endScreen: function() {
-                context.clearRect(0,0,300,300);
-                context.font = '30px Verdana';
-                context.fillText("Game Over",130,130);
+            endScreen: function(score) {
+                //context.clearRect(0,0,300,300);
+                context.font = '20px Verdana';
+                context.fillText("Game Over", 100, 140);
+                context.fillText("Score:" + score, 100, 160);
             }
         }
         octopus.init();
