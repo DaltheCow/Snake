@@ -178,12 +178,23 @@
                 else {
                     octopus.clear();
                     view.endScreen(model.snakeArray.length);
+
+                    var listener = function(event) {
+                        if (event.charCode === 114) {
+                            octopus.init();
+                            removeEventListener('keypress', listener, false);
+                        }
+                    };
+                    addEventListener('keypress', listener, false);
+
+
                 }
             }
         }
 
         var view = {
             init: function() {
+                context.clearRect(0,0,300,300);
                 context.fillText("To Start Hit R", 120, 140);
                 context.fillText("Controls: wasd", 120, 150);
             },
@@ -199,6 +210,8 @@
                 context.font = '20px Verdana';
                 context.fillText("Game Over", 100, 140);
                 context.fillText("Score:" + score, 100, 160);
+                context.font = '10px Verdana';
+                context.fillText("Hit R For New Game", 100, 180);
             }
         }
         octopus.init();
