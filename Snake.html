@@ -11,6 +11,7 @@
             snakehead: {xPos: 140, yPos: 140, pastX: null, pastY: null, blockSize: 10, direction: 'E'},
             target: {xPos: null, yPos: null},
             refreshSpeed: 100,
+            speedUp: false,
             snakeArray: [],
             game: true,
             obj: function(xpos,ypos) {
@@ -89,8 +90,14 @@
                 var M = model;
                 if(M.collisions(M.target.xPos, M.target.yPos, M.snakehead.xPos, M.snakehead.yPos)) {
                     M.growth(3);
+                    if (model.refreshSpeed > 20)
+                        model.refreshSpeed-=2;
                     M.newTarget();
+                    model.speedUp = true;
                 }
+            },
+            tailCollisions: function() {
+
             },
             renderGame: function() {
                 model.updatePos();
@@ -104,18 +111,24 @@
             init: function() {
                 context.fillText("To Start Hit R", 120,140);
                 model.newTarget();
-                model.growth(4);
                 var listener = function(event) {
                     if (event.charCode === 114) {
-                        setInterval(function(){
-                            octopus.render();
-                        }, model.refreshSpeed);
+                        octopus.setSpeed();
                     removeEventListener('keypress', listener, false);
                     model.move();
                     }
                 };
                 addEventListener('keypress', listener, false);
             },
+            setSpeed: function() {
+                octopus.intervalID = setInterval(function(){
+                    octopus.render();
+                }, model.refreshSpeed);
+            },
+            clear: function() {
+                clearInterval(octopus.intervalID);
+            },
+            intervalID: null,
             render: function() {
                 context.clearRect(0,0,300,300);
                 var SH = model.snakehead;
@@ -126,6 +139,11 @@
                     });
                     view.renderGame(model.target.xPos,model.target.yPos, SH.blockSize);
                     model.renderGame();
+                    if (model.speedUp) {
+                        octopus.clear();
+                        octopus.setSpeed();
+                        model.speedUp = false;
+                    }
                 }
                 else {
                     view.endScreen();
