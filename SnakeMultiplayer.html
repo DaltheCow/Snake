@@ -11,19 +11,22 @@
             snakehead: {xPos: 140, yPos: 140, pastX: null, pastY: null, blockSize: 10, direction: 'E'},
             wormhead: {xPos: 140, yPos: 140, pastX: null, pastY: null, blockSize: 10, direction: 'W'},
             target: {xPos: null, yPos: null},
-            refreshSpeed: 100,
+            refreshSpeed: 140,
             speedUp: false,
             snakeArray: [],
+            wormArray: [],
             game: true,
             init: function() {
                 var M = model;
                 M.snakehead = {xPos: 140, yPos: 140, pastX: null, pastY: null, blockSize: 10, direction: 'E'};
-                M.wormhead: {xPos: 140, yPos: 140, pastX: null, pastY: null, blockSize: 10, direction: 'W'};
+                M.wormhead = {xPos: 140, yPos: 140, pastX: null, pastY: null, blockSize: 10, direction: 'W'};
                 M.newTarget();
-                M.refreshSpeed = 100;
+                M.refreshSpeed = 140;
                 M.speedUp = false;
                 M.snakeArray = [];
-                M.growth(4);
+                M.wormArray = [];
+                M.growth(4,M.snakeArray,M.snakehead);
+                M.growth(4,M.wormArray,M.wormhead);
                 M.game = true;
             },
             obj: function(xpos,ypos) {
@@ -35,35 +38,36 @@
                 M.target.yPos = 10 * Math.floor(Math.random() * 29);
                 if (M.snakeArray.some(function(AE){
                         return M.collisions(AE.xPos, AE.yPos, M.target.xPos, M.target.yPos);
+                    }) || M.wormArray.some(function(AE){
+                        return M.collisions(AE.xPos, AE.yPos, M.target.xPos, M.target.yPos);
                     })) {
                     M.newTarget();
                 }
             },
-            updatePos: function() {
-                var SH = model.snakehead;
-                SH.pastX = SH.xPos;
-                SH.pastY = SH.yPos;
-                if (SH.direction === 'E')
-                    SH.xPos += SH.blockSize;
-                else if (SH.direction === 'W')
-                    SH.xPos -= SH.blockSize;
-                else if (SH.direction === 'N')
-                    SH.yPos -= SH.blockSize;
-                else if (SH.direction === 'S')
-                    SH.yPos += SH.blockSize;
+            updatePos: function(head) {
+                head.pastX = head.xPos;
+                head.pastY = head.yPos;
+                if (head.direction === 'E')
+                    head.xPos += head.blockSize;
+                else if (head.direction === 'W')
+                    head.xPos -= head.blockSize;
+                else if (head.direction === 'N')
+                    head.yPos -= head.blockSize;
+                else if (head.direction === 'S')
+                    head.yPos += head.blockSize;
             },
-            updateSA: function() {
-                var SA = model.snakeArray;
-                SA[0].pastX = SA[0].xPos, SA[0].pastY = SA[0].yPos;
-                SA[0].xPos = model.snakehead.pastX;
-                SA[0].yPos = model.snakehead.pastY;
-                for(var i = 1; i < SA.length; i++) {
-                    SA[i].pastX = SA[i].xPos, SA[i].pastY = SA[i].yPos;
-                    SA[i].xPos = SA[i-1].pastX, SA[i].yPos = SA[i-1].pastY;
+            updateSA: function(array, head) {
+                array[0].pastX = array[0].xPos, array[0].pastY = array[0].yPos;
+                array[0].xPos = head.pastX;
+                array[0].yPos = head.pastY;
+                for(var i = 1; i < array.length; i++) {
+                    array[i].pastX = array[i].xPos, array[i].pastY = array[i].yPos;
+                    array[i].xPos = array[i-1].pastX, array[i].yPos = array[i-1].pastY;
                 }
             },
             move: function () {
                 addEventListener('keypress', function(event) {
+                    console.log(event.charCode);
                     if (event.charCode === 100) {
                         if (model.snakehead.direction != 'W')
                             model.snakehead.direction = 'E';
@@ -80,19 +84,37 @@
                         if (model.snakehead.direction != 'S')
                             model.snakehead.direction = 'N';
                     }
+
+                    if (event.charCode === 59) {
+                        if (model.wormhead.direction != 'W')
+                            model.wormhead.direction = 'E';
+                    }
+                    else if (event.charCode === 108) {
+                        if (model.wormhead.direction != 'N')
+                            model.wormhead.direction = 'S';
+                    }
+                    else if (event.charCode === 107) {
+                        if (model.wormhead.direction != 'E')
+                            model.wormhead.direction = 'W';
+                    }
+                    else if (event.charCode === 111) {
+                        if (model.wormhead.direction != 'S')
+                            model.wormhead.direction = 'N';
+                    }
+
             }, false)},
-            growth: function(j) {
+            growth: function(j, array, head) {
                 var SA = model.snakeArray;
                 //for growths after first
-                if (SA.length > 0) {
+                if (array.length > 0) {
                     for (var i = 0; i<j; i++) {
-                        model.snakeArray.push(model.obj(SA[SA.length-1].xPos, SA[SA.length-1].yPos));
+                        array.push(model.obj(array[array.length-1].xPos, array[array.length-1].yPos));
                     }
                 }
                 //for first growth
                 else {
                     for (var i = 0; i<j; i++) {
-                        model.snakeArray.push(model.obj(model.snakehead.xPos, model.snakehead.yPos));
+                        array.push(model.obj(head.xPos, head.yPos));
                     }
                 }
             },
@@ -104,36 +126,40 @@
                 else
                     return false;
             },
-            targetCollisions: function() {
+            targetCollisions: function(head, array) {
                 var M = model;
-                if(M.collisions(M.target.xPos, M.target.yPos, M.snakehead.xPos, M.snakehead.yPos)) {
-                    M.growth(3);
+                if(M.collisions(M.target.xPos, M.target.yPos, head.xPos, head.yPos)) {
+                    M.growth(3,array,head);
                     if (M.refreshSpeed > 20)
                         M.refreshSpeed-=1;
                     M.newTarget();
                     M.speedUp = true;
                 }
             },
-            tailCollisions: function() {
+            tailCollisions: function(array, head) {
                 var M = model;
-                if (M.snakeArray.some(function(AE) {
-                    return M.collisions(AE.xPos, AE.yPos, M.snakehead.xPos, M.snakehead.yPos);
+                if (array.some(function(AE) {
+                    return M.collisions(AE.xPos, AE.yPos, head.xPos, head.yPos);
                     })) {
                     model.game = false;
                 }
             },
-            wallCollisions: function() {
-                var SH = model.snakehead;
-                if (SH.xPos > 290 || SH.xPos < 0 || SH.yPos > 290 || SH.yPos < 0) {
+            wallCollisions: function(head) {
+                if (head.xPos > 290 || head.xPos < 0 || head.yPos > 290 || head.yPos < 0) {
                     model.game = false;
                 }
             },
             renderGame: function() {
-                model.updatePos();
-                model.updateSA();
-                model.targetCollisions();
-                model.tailCollisions();
-                model.wallCollisions();
+                model.updatePos(model.snakehead);
+                model.updatePos(model.wormhead);
+                model.updateSA(model.snakeArray, model.snakehead);
+                model.updateSA(model.wormArray, model.wormhead);
+                model.targetCollisions(model.snakehead, model.snakeArray);
+                model.targetCollisions(model.wormhead, model.wormArray);
+                model.tailCollisions(model.snakeArray, model.snakehead);
+                model.tailCollisions(model.wormArray, model.wormhead);
+                model.wallCollisions(model.snakehead);
+                model.wallCollisions(model.wormhead);
 
             }
         }
@@ -163,13 +189,18 @@
             render: function() {
                 //context.clearRect(0,0,300,300);
                 var SH = model.snakehead;
+                var m = model;
                 if (model.game) {
                     context.clearRect(0,0,300,300);
-                    view.renderGame(SH.xPos, SH.yPos, SH.blockSize);
+                    view.renderGame(m.snakehead.xPos, m.snakehead.yPos, m.snakehead.blockSize,'blue');
+                    view.renderGame(m.wormhead.xPos, m.wormhead.yPos, m.snakehead.blocksize, 'red');
                     model.snakeArray.forEach(function(AE) {
-                        view.renderGame(AE.xPos, AE.yPos, SH.blockSize);
+                        view.renderGame(AE.xPos, AE.yPos, SH.blockSize, 'blue');
                     });
-                    view.renderGame(model.target.xPos,model.target.yPos, SH.blockSize);
+                    model.wormArray.forEach(function(AE) {
+                        view.renderGame(AE.xPos, AE.yPos, SH.blockSize, 'red');
+                    });
+                    view.renderGame(model.target.xPos,model.target.yPos, SH.blockSize, 'black');
                     model.renderGame();
                     if (model.speedUp) {
                         octopus.clear();
@@ -197,18 +228,20 @@
         var view = {
             init: function() {
                 context.clearRect(0,0,300,300);
+                context.fillStyle = 'black';
                 context.fillText("To Start Hit R", 120, 140);
                 context.fillText("Controls: wasd", 120, 150);
             },
-            renderGame: function(x,y,size) {
-                view.drawSnake(x,y,size);
+            renderGame: function(x,y,size,color) {
+                view.drawSnake(x,y,size,color);
             },
-            drawSnake: function(x,y,size) {
-                context.fillStyle = 'black';
+            drawSnake: function(x,y,size,color) {
+                context.fillStyle = color;
                 context.fillRect(x,y,size*9/10,size*9/10);
             },
             endScreen: function(score) {
                 //context.clearRect(0,0,300,300);
+                context.fillStyle = 'black';
                 context.font = '20px Verdana';
                 context.fillText("Game Over", 100, 140);
                 context.fillText("Score:" + score, 100, 160);
