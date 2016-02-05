@@ -9,6 +9,7 @@
         var context = screen.getContext('2d');
         var model = {
             snakehead: {xPos: 140, yPos: 140, pastX: null, pastY: null, blockSize: 10, direction: 'E'},
+            wormhead: {xPos: 140, yPos: 140, pastX: null, pastY: null, blockSize: 10, direction: 'W'},
             target: {xPos: null, yPos: null},
             refreshSpeed: 100,
             speedUp: false,
@@ -17,6 +18,7 @@
             init: function() {
                 var M = model;
                 M.snakehead = {xPos: 140, yPos: 140, pastX: null, pastY: null, blockSize: 10, direction: 'E'};
+                M.wormhead: {xPos: 140, yPos: 140, pastX: null, pastY: null, blockSize: 10, direction: 'W'};
                 M.newTarget();
                 M.refreshSpeed = 100;
                 M.speedUp = false;
