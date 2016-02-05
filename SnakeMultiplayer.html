@@ -67,7 +67,6 @@
             },
             move: function () {
                 addEventListener('keypress', function(event) {
-                    console.log(event.charCode);
                     if (event.charCode === 100) {
                         if (model.snakehead.direction != 'W')
                             model.snakehead.direction = 'E';
@@ -193,7 +192,7 @@
                 if (model.game) {
                     context.clearRect(0,0,300,300);
                     view.renderGame(m.snakehead.xPos, m.snakehead.yPos, m.snakehead.blockSize,'blue');
-                    view.renderGame(m.wormhead.xPos, m.wormhead.yPos, m.snakehead.blocksize, 'red');
+                    view.renderGame(m.wormhead.xPos, m.wormhead.yPos, m.snakehead.blockSize, 'red');
                     model.snakeArray.forEach(function(AE) {
                         view.renderGame(AE.xPos, AE.yPos, SH.blockSize, 'blue');
                     });
@@ -210,7 +209,8 @@
                 }
                 else {
                     octopus.clear();
-                    view.endScreen(model.snakeArray.length);
+                    view.endScreen('Blue: ' + model.snakeArray.length + '  ' + 
+                                   'Red: ' + model.wormArray.length);
 
                     var listener = function(event) {
                         if (event.charCode === 114) {
@@ -230,7 +230,7 @@
                 context.clearRect(0,0,300,300);
                 context.fillStyle = 'black';
                 context.fillText("To Start Hit R", 120, 140);
-                context.fillText("Controls: wasd", 120, 150);
+                context.fillText("Controls: (red) wasd, (blue) okl;", 120, 150);
             },
             renderGame: function(x,y,size,color) {
                 view.drawSnake(x,y,size,color);
@@ -244,7 +244,7 @@
                 context.fillStyle = 'black';
                 context.font = '20px Verdana';
                 context.fillText("Game Over", 100, 140);
-                context.fillText("Score:" + score, 100, 160);
+                context.fillText(score, 100, 160);
                 context.font = '10px Verdana';
                 context.fillText("Hit R For New Game", 100, 180);
             }
