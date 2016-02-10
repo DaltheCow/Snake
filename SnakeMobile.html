@@ -1,3 +1,4 @@
+<!--Turned my web browser snake game into something that could run on the phone-->
 <doctype html>
 <html>
     <title>
@@ -10,7 +11,6 @@
         var bound = screen.getBoundingClientRect();
         var tops = 0 - bound.top;
         var lefts = 0 - bound.left;
-
         var sWidth = 900, sHeight = 900;
         screen.width = sWidth, screen.height = sHeight;
         var model = {
@@ -35,8 +35,8 @@
             },
             newTarget: function() {
                 var M = model;
-                M.target.xPos = 10 * Math.floor(Math.random() * 29/30 * sWidth/10);
-                M.target.yPos = 10 * Math.floor(Math.random() * 29/30 * sWidth/10);
+                M.target.xPos = 10/300 * sWidth * Math.floor(Math.random() * 29);
+                M.target.yPos = 10/300 * sWidth * Math.floor(Math.random() * 29);
                 if (M.snakeArray.some(function(AE){
                         return M.collisions(AE.xPos, AE.yPos, M.target.xPos, M.target.yPos);
                     })) {
@@ -140,7 +140,6 @@
                 model.targetCollisions();
                 model.tailCollisions();
                 model.wallCollisions();
-
             }
         }
 
@@ -183,14 +182,13 @@
                 else {
                     octopus.clear();
                     view.endScreen(model.snakeArray.length);
-
                     var listener = function(event) {
                             octopus.init();
                             removeEventListener('touchend', listener, false);
                     };
-                    addEventListener('touchend', listener, false);
-
-
+                    setTimeout(function() {
+                        addEventListener('touchend', listener, false);
+                    }, 2000);
                 }
             }
         }
@@ -199,7 +197,6 @@
             init: function() {
                 context.clearRect(0,0,sWidth,sWidth);
                 context.fillText("To Start Tap Screen", 120/300 * sWidth, 140/300 * sWidth);
-                context.fillText("Controls: wasd", 120/300 * sWidth, 150/300 * sWidth);
             },
             renderGame: function(x,y,size) {
                 view.drawSnake(x,y,size);
